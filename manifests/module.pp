@@ -10,18 +10,20 @@
 #
 define php::module (
   $ensure = installed,
+  $params_class = '::php::params',
 ) {
 
-  include '::php::params'
-
+  include $params_class
+  $class = "${params_class}::php_package_name"
   # Manage the incorrect named php-apc package under Debians
   if ($title == 'apc') {
-    $package = $::php::params::php_apc_package_name
+	$class = "${params_class}::php_apc_package_name"
+    $package = getvar($class)
   } else {
     # Hack to get pkg prefixes to work, i.e. php56-mcrypt title
     $package = $title ? {
       /^php/  => $title,
-      default => "${::php::params::php_package_name}-${title}"
+      default => inline_template("<%= scope.lookupvar(scope.lookupvar('class')) %>-<%= scope.lookupvar('title')  %>"),
     }
   }
 
@@ -29,4 +31,5 @@ define php::module (
     ensure => $ensure,
   }
 }
+
 
